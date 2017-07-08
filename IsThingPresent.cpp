@@ -2,50 +2,45 @@
 #include "motors.h"
 #include <stdio.h>
 #include <algorithm> 
-
+#include <boost/program_options.hpp>
 //For sleeping
 #include <unistd.h>
+#include <string>
+
+//My math functions
+#include "cv_math.h"
 
 using namespace cv;
+namespace po = boost::program_options;
 
-
-void measure_points
-(Mat &im, unsigned char* rv, Point* points, int num_points){
-
-  int i;
-
-  for(i=0; i<num_points; i++){
-    rv[i] = im.at<uchar>(points[i]);
-  }
-}
-
-int avg_val(unsigned char* vals, int num_vals){
-  short i;
-  int avg = 0;
-
-  for(i=0; i<num_vals; i++){
-    avg += vals[i];
-  }
-  avg/=num_vals;
-
-  return avg;
-}
-
-unsigned char max_val(unsigned char* vals, int num_vals){
-  int i;
-  unsigned char rv;
-
-  for(i=0; i<num_vals-1; i++){
-    rv = max(vals[i], vals[i+1]);
-  }
-
-  return rv;
-}
 
 int main(int argc, char** argv){
 
-  if( argc < 3){
-    printf("usage: IsDoorOpen <serial port> <serial baud>\n");
+  po::options_description desc("Allowed options");
+  desc.add_options()
+    ("help,h", "produce help message")
+
+    ("threshold,t", po::value<int>(), "set threshold 0-255 of existence")
+
+    ("serial_port,s", po::value<std::string>()->default_value("/dev/ttyACM0"), 
+     "port arduino is on")
+
+    ("baud,b", po::value<int>()->default_value(9600),
+     "baud rate arduino is communicating on")
+
+    ("xpos,x", po::value<int>(), "x position to move to")
+
+    ("ypos,y", po::value<int>(), "y position to move to")
+
+    ("points,p", po::value<int>(), "points to measure")
+    ;
+
+  po::variables_map vm;
+  po::store(parse_command_line(argc, argv, desc), vm);
+
+
+  if( argc < 3 || vm.count("help")){
+    printf("usage: IsThingPresent <serial port> <serial baud>\n");
     return 1;
   }
 
@@ -60,7 +55,7 @@ int main(int argc, char** argv){
   Mat  depth;
   Point p[4];
   char ch;
-  bool door_open;
+  bool thing_present;
 
   //                 v --- num points per frame sampled
   unsigned char vals[4];
@@ -69,9 +64,11 @@ int main(int argc, char** argv){
   //                     v --- num frames sampled
   unsigned char avg_vals[6];
 
-  motors.init_serial(argc, argv);
+  motors.init_serial(vm["serial_port"].as<std::string>(),
+		     vm["baud"].as<int>());
+
   sleep(2);
-  motors.init_motors(20, 30);
+  motors.init_motors(vm["xpos"].as<int>(), vm["ypos"].as<int>());
 
   VideoCapture cam(CAP_OPENNI2_ASUS);
 
@@ -105,14 +102,14 @@ int main(int argc, char** argv){
   putText(depth, txt, Point(20, 20), FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(0,0,0), 1, CV_AA );
 
 
-  if(max>175){
-    door_open = true;
-    sprintf(txt, "Door is open");
+  if(max<vm["threshold"].as<int>()){
+    thing_present = true;
+    sprintf(txt, "Thing is present");
     putText(depth, txt, Point(20, 40), FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(0,0,0), 1, CV_AA );
   }
   else{
-    door_open = false;
-    sprintf(txt, "Door is closed");
+    thing_present = false;
+    sprintf(txt, "Thing is absent");
     putText(depth, txt, Point(20, 40), FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(0,0,0), 1, CV_AA );
   }
 
@@ -130,5 +127,5 @@ int main(int argc, char** argv){
 
   fsetpos(stdout, &pos); // move to the correct position
 
-  printf("%d\n", door_open);
+  printf("%d\n", thing_present);
 }
