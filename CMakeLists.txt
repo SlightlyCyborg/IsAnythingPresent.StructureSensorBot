@@ -11,14 +11,9 @@ include_directories( ${Boost_INCLUDE_DIR} )
 include_directories( ${CURSES_INCLUDE_DIR} )
 
 add_executable( IsDoorOpen IsDoorOpen.cpp)
-add_executable( show_vals_on_door show_vals_on_door.cpp)
 
 target_link_libraries( IsDoorOpen ${OpenCV_LIBS} )
 target_link_libraries( IsDoorOpen ${Boost_SYSTEM_LIBRARY} )
 target_link_libraries( IsDoorOpen ${CURSES_LIBRARIES} )
-
-target_link_libraries( show_vals_on_door ${OpenCV_LIBS} )
-target_link_libraries( show_vals_on_door ${Boost_SYSTEM_LIBRARY} )
-target_link_libraries( show_vals_on_door ${CURSES_LIBRARIES} )
 
 
