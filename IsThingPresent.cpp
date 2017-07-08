@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <algorithm> 
 #include <boost/program_options.hpp>
+#include <iostream>
 //For sleeping
 #include <unistd.h>
 #include <string>
@@ -40,7 +41,7 @@ int main(int argc, char** argv){
 
 
   if( argc < 3 || vm.count("help")){
-    printf("usage: IsThingPresent <serial port> <serial baud>\n");
+    std::cout << desc << std::endl;
     return 1;
   }
 
@@ -120,6 +121,8 @@ int main(int argc, char** argv){
     waitKey(0);
   }
 
+  motors.return_home();
+
   fflush(stdout);   
   dup2(fd, fileno(stdout));  // restore the stdout
   close(fd);
@@ -128,4 +131,5 @@ int main(int argc, char** argv){
   fsetpos(stdout, &pos); // move to the correct position
 
   printf("%d\n", thing_present);
+
 }

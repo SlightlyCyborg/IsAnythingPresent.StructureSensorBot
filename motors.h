@@ -78,7 +78,7 @@ public:
   void return_home(){
     char commands[2];
     x_pos = 90;
-    y_pos = 40;
+    y_pos = 60;
    
 
     commands[0]=1; 
