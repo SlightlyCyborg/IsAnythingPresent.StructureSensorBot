@@ -1,6 +1,5 @@
 cmake_minimum_required( VERSION 2.8 )
 project( IsThingPresent )
-project( show_vals_on_door )
 
 find_package( OpenCV REQUIRED )
 find_package(Boost COMPONENTS system program_options REQUIRED)
